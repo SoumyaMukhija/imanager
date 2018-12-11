@@ -18,17 +18,14 @@ login_frame.title('iManager')
 
 
 #Databases
-conn=Connection("User Database")
+conn=Connection("Sample Data")
 cur=conn.cursor()
-cur.execute("CREATE TABLE if not exists User_Data (_UID INTEGER PRIMARY KEY AUTOINCREMENT, Fname varchar2 (15) NOT NULL, Sname varchar2 (15) NOT NULL, Uname varchar2 (15) UNIQUE, Password varchar2(15) NOT NULL);")
+cur.execute("CREATE TABLE if not exists U_Data (_UID INTEGER PRIMARY KEY AUTOINCREMENT, Fname varchar2 (15) NOT NULL, Sname varchar2 (15) NOT NULL, Uname varchar2 (15) UNIQUE, Password varchar2(15) NOT NULL);")
+conn.commit()
+cur.execute("CREATE TABLE IF NOT EXISTS F_Data (_FID INTEGER PRIMARY KEY AUTOINCREMENT, UID INTEGER(1000000), FileName varchar2 (15), Date_ varchar2 (15))")
 conn.commit()
 
-fileconn=Connection("File Database")
-filecur=fileconn.cursor()
-filecur.execute("CREATE TABLE IF NOT EXISTS File_Data (_FID INTEGER PRIMARY KEY AUTOINCREMENT, UID INTEGER(1000000), FileName varchar2 (15), Date_ varchar2 (15))")
-fileconn.commit()
-
-cur.execute("SELECT * FROM User_Data")
+cur.execute("SELECT * FROM U_Data")
 a=cur.fetchall()
 print(a)
 
@@ -51,11 +48,11 @@ def openfile(uid, filename):
 			check=os.system("notepad " +filename+".txt")
 			now=datetime.now()
 			today= str(now.day) + '/' + str(now.month) +'/' + str(now.year)
-			filecur.execute("SELECT * FROM File_Data")
-			f=filecur.fetchall()
+			cur.execute("SELECT * FROM F_Data")
+			f=cur.fetchall()
 			print(f)
-			filecur.execute("insert into File_Data (UID, FileName, Date_) values (?, ?, ?)", ( uid, filename, today))
-			fileconn.commit()
+			cur.execute("insert into F_Data (UID, FileName, Date_) values (?, ?, ?)", ( uid, filename, today))
+			conn.commit()
 		except:
 			raise
 			mb.showerror('Error','Looks like something is wrong. Please try again.')
@@ -94,41 +91,45 @@ def mainscreen(uname):
 	subframe2.place(x=0, y=105)
 	subframe3=Frame(ms, height=500, width=3, bg='black')
 	subframe3.place(x=70, y=0)
-	cur.execute("SELECT _UID FROM User_Data WHERE UNAME=?",(uname,))
+	cur.execute("SELECT _UID FROM U_Data WHERE UNAME=?",(uname,))
 	U=cur.fetchone()
 	uid=U[0]
 	Label(frame, text='iManager', font='Cambria 40 bold', cursor='heart',bg='#013554', fg='white').place(x=240, y=25)
 	tx=uname+"'s files"
 	Label(subframe, text=tx, font='Georgia 15 italic', bg='#CD342E', fg='white').place(x=80, y=8)
-	filecur.execute("SELECT exists(SELECT 1 FROM File_Data)")
-	checknull=filecur.fetchone()
+	cur.execute("SELECT exists(SELECT 1 FROM F_Data)")
+	checknull=cur.fetchone()
 	print(checknull[0])
 	if checknull[0]!=0:
-		filecur.execute("SELECT * FROM File_Data")
-		viewdata=filecur.fetchall()
-		dateframe=Frame(ms, height=270, width=250, bg='white')
-		dateframe.place(x=80, y=170)
-		fileframe=Frame(ms, height=270, width=250, bg='white')
-		fileframe.place(x=320, y=170)
-		Label (dateframe, text="Date", font='Cambria 20 bold', bg='white', fg='black').place(x=80, y=10)
-		Label (fileframe, text="Filename", font='Cambria 20 bold', bg='white', fg='black').place(x=0, y=10)
-		cnt=50
+		cur.execute("SELECT * FROM F_Data, U_Data where F_Data.UID=U_Data._UID")
+		viewdata=cur.fetchall()
+		mainframe=Frame(ms, height=270, width=400, bg='white')
+		mainframe.place(x=80, y=170)
+		Label (mainframe, text="Date", font='Cambria 20 bold', bg='white', fg='black').place(x=80, y=10)
+		Label (mainframe, text="Filename", font='Cambria 20 bold', bg='white', fg='black').place(x=0, y=10)
+		cnt=10
 		top=225
 		c=0
+		docimg=PhotoImage ( file= "download.gif")
 		for i in viewdata:
-			cnt+=30
 			c+=1
-			Label(dateframe, text=i[3], bg='white', fg='black', font='Courier 13').place(x=70, y=cnt)
-			Label(fileframe, text= str(i[2])+".txt", bg='white', fg='black', font='Courier 13').place(x=30, y=cnt)
-			Button(ms, text='Open', bg='#0070F7', fg='white', font='Arial 10 bold', bd=3, command=lambda: openexistingfile(str(i[2]))).place(x=500, y=c*2+top)
+			doc=Button( mainframe, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(str(i[2])))
+			doc.place(x=cnt, y=70)
+			doc.image=docimg
+			Label(mainframe, text=str(i[2]), font='Times 12 italic', bg='white').place(x=cnt+40, y=180)
+			cnt+=150
+
+			#Label(dateframe, text=i[3], bg='white', fg='black', font='Courier 13').place(x=70, y=cnt)
+			#abel(fileframe, text= str(i[2])+".txt", bg='white', fg='black', font='Courier 13').place(x=30, y=cnt)
+			#Button(ms, text='Open', bg='#0070F7', fg='white', font='Arial 10 bold', bd=3, command=lambda: openexistingfile(str(i[2]))).place(x=500, y=c*2+top)
 		testframe=Frame(ms, height=1, width=700, bg='#0070F7')
 		testframe.place(x=0, y=220)
 	else:
-		Label(ms, text='No files yet!', font='Cambria 20 bold', bg='white').place(x=100, y=90)
+		Label(ms, text='No files yet!', font='Cambria 20 bold', bg='white').place(x=270, y=190)
 		img = PhotoImage(file="write.gif")
 		img1lbl = Label(ms, image=img, height=160 , width=160, bd=0)
 		img1lbl.image = img
-		img1lbl.place(x=75, y=120)
+		img1lbl.place(x=275, y=240)
 	btimg=PhotoImage(file="images.gif")
 	b=Button(ms, image=btimg, bd=0,  command=lambda: write(uid))
 	b.image=btimg
@@ -139,18 +140,23 @@ def mainscreen(uname):
 
 
 def sign_up_check(fname, lname, uname, password):
-	pre_existing=cur.execute("SELECT Uname FROM User_Data WHERE Uname=?", (uname,));
+	global spp, subframe2, subframe3, frame
+	pre_existing=cur.execute("SELECT Uname FROM U_Data WHERE Uname=?", (uname,));
 	a=pre_existing.fetchall()
 	try:
 		if len(a)>0:
 			raise
 		if fname=='' or lname=='' or uname=='' or password=='':
 			raise
-		cur.execute("insert into User_Data (Fname, Sname, Uname, Password) values (?, ?, ?, ?);", (fname, lname, uname, password))
+		cur.execute("insert into U_Data (Fname, Sname, Uname, Password) values (?, ?, ?, ?);", (fname, lname, uname, password))
 		conn.commit()
 		x=cur.fetchone()
 		mb.showinfo('Success', 'Sign-up successful!')
 		login_frame.deiconify()
+		subframe2.destroy()
+		subframe3.destroy()
+		frame.destroy()
+		spp.destroy()
 		login_page() 
 	except:
 		if fname=='':
@@ -171,7 +177,7 @@ def sign_up_check(fname, lname, uname, password):
 
 
 def sign_up_page():
-	global subframe, subframe3, subframe2
+	global subframe, subframe3, subframe2, frame, spp
 	subframe.destroy()
 	subframe2.destroy()
 	subframe3.destroy()
@@ -212,7 +218,7 @@ def login_check(uname, password):
 		mb.showerror('Login Failed', 'Please enter your username.')
 	else:
 		try:
-			cur.execute("SELECT Password from User_Data WHERE Uname = (?)",(uname,)) 
+			cur.execute("SELECT Password from U_Data WHERE Uname = (?)",(uname,)) 
 			checkpass=cur.fetchone()
 			if checkpass[0]==password :
 				subframe2.destroy()
@@ -224,7 +230,7 @@ def login_check(uname, password):
 				return
 		except:
 			raise
-			mb.showerror('Login Failed', 'Username does not exist. Sign up for free instead.')
+			mb.showerror('Login Failed', 'Username does not exist. Sign up for free instead!')
 
 
 
