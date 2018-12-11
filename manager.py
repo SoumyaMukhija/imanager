@@ -29,7 +29,9 @@ cur.execute("SELECT * FROM U_Data")
 a=cur.fetchall()
 print(a)
 
-
+cur.execute("SELECT * FROM F_Data")
+a=cur.fetchall()
+print(a)
 
 
 
@@ -41,6 +43,9 @@ def openexistingfile(file):
 
 
 def openfile(uid, filename):
+	global getinfo
+	getinfo.destroy() 
+
 	if filename=='':
 		mb.showerror('Missing Input', 'Please specify a file name.')
 	else:
@@ -63,7 +68,7 @@ def openfile(uid, filename):
 
 
 def write(uid):
-	global frame, subframe, subframe3, subframe2, dateframe, fileframe, testframe
+	global getinfo
 	getinfo=Toplevel(bg='white')
 	getinfo.title('New File')
 	getinfo.geometry('250x90')
@@ -94,30 +99,29 @@ def mainscreen(uname):
 	cur.execute("SELECT _UID FROM U_Data WHERE UNAME=?",(uname,))
 	U=cur.fetchone()
 	uid=U[0]
+	print(uid)
 	Label(frame, text='iManager', font='Cambria 40 bold', cursor='heart',bg='#013554', fg='white').place(x=240, y=25)
 	tx=uname+"'s files"
 	Label(subframe, text=tx, font='Georgia 15 italic', bg='#CD342E', fg='white').place(x=80, y=8)
-	cur.execute("SELECT exists(SELECT 1 FROM F_Data)")
+	cur.execute("SELECT exists(SELECT 1 FROM F_Data, U_Data WHERE F_Data.UID=(?))", (uid, ))
 	checknull=cur.fetchone()
 	print(checknull[0])
 	if checknull[0]!=0:
-		cur.execute("SELECT * FROM F_Data, U_Data where F_Data.UID=U_Data._UID")
+		cur.execute("SELECT FileName FROM F_Data where F_Data.UID=(?)", [uid])
 		viewdata=cur.fetchall()
+		print(viewdata)
 		mainframe=Frame(ms, height=270, width=400, bg='white')
 		mainframe.place(x=80, y=170)
-		Label (mainframe, text="Date", font='Cambria 20 bold', bg='white', fg='black').place(x=80, y=10)
-		Label (mainframe, text="Filename", font='Cambria 20 bold', bg='white', fg='black').place(x=0, y=10)
-		cnt=10
+		cnt=7
 		top=225
 		c=0
 		docimg=PhotoImage ( file= "download.gif")
 		for i in viewdata:
-			c+=1
-			doc=Button( mainframe, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(str(i[2])))
+			doc=Button( mainframe, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(str(i[0])))
 			doc.place(x=cnt, y=70)
 			doc.image=docimg
-			Label(mainframe, text=str(i[2]), font='Times 12 italic', bg='white').place(x=cnt+40, y=180)
-			cnt+=150
+			Label(mainframe, text=str(i[0]), font='Times 12 italic', bg='white').place(x=cnt, y=130)
+			cnt+=120
 
 			#Label(dateframe, text=i[3], bg='white', fg='black', font='Courier 13').place(x=70, y=cnt)
 			#abel(fileframe, text= str(i[2])+".txt", bg='white', fg='black', font='Courier 13').place(x=30, y=cnt)
@@ -125,7 +129,7 @@ def mainscreen(uname):
 		testframe=Frame(ms, height=1, width=700, bg='#0070F7')
 		testframe.place(x=0, y=220)
 	else:
-		Label(ms, text='No files yet!', font='Cambria 20 bold', bg='white').place(x=270, y=190)
+		Label(ms, text='No files yet! Start writing.', font='Cambria 15 italic', bg='white').place(x=240, y=190)
 		img = PhotoImage(file="write.gif")
 		img1lbl = Label(ms, image=img, height=160 , width=160, bd=0)
 		img1lbl.image = img
