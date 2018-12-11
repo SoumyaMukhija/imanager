@@ -1,0 +1,8 @@
+iManager to do list: 
+	1- Fix bug: file opening 
+	2- Logout button
+	3- Scroll bar or page system
+	4- Upload option
+	5- Validation (re library)
+	6- UI changes
+	
