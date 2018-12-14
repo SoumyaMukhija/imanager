@@ -4,9 +4,10 @@ from sqlite3 import *
 from tkinter import messagebox as mb
 from tkinter import ttk
 from datetime import *
-from PIL import Image, ImageTk as it
 import os
+import re
 import sys
+
 
 
 
@@ -39,6 +40,55 @@ print(a)
 def openexistingfile(file):
 	print(file)
 	os.system("notepad "+file+".txt")
+
+def logout(event):
+
+	global frame, subframe, subframe3, subframe2, testframe, mainframe, ms
+	ms.destroy()
+	frame.destroy()
+	mainframe.destroy()
+	subframe.destroy()
+	subframe2.destroy()
+	subframe3.destroy()
+	testframe.destroy()
+	login_frame.deiconify()
+	login_page()
+
+
+def mailto(content, sender, email):
+	global mail
+	if not re.match(r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$", email):
+		mb.showerror('Error', 'Please enter a valid email address.')
+	elif content=='':
+		mb.showerror('Error', 'Please enter some text.')
+	else:
+		if not re.match(r"[A-Za-z]{2,25}([A-Za-z]{2,25})", sender):
+			mb.showerror('Error', 'Please enter a valid name')
+	
+		else:
+			print (content)
+			print(sender)
+			print(email)
+			mb.showinfo('Success', 'Thank you!')
+			mail.destroy()
+
+
+
+def contact(event):
+	global mail
+	mail=Toplevel(bg='white')
+	mail.geometry('500x300+100+10')
+	mail.title('Contact Us')
+	Label(mail, text='Name', bg='white').place(x=0, y=0)
+	sender=Entry(mail, width=50, bd=4)
+	sender.place(x=50, y=0)
+	Label(mail, text='Email ID', bg='white'). place(x=0, y=40)
+	subject=Entry(mail, width=50, bd=4)
+	subject.place(x=50, y=40)
+	mainentry=Text(mail, width=70, height=50, bd=1)
+	mainentry.place(x=0, y=90)
+	Button(mail, text='Submit', bg='black', fg='white', command=lambda: mailto(mainentry.get('1.0', END), sender.get(), subject.get())).place(x=200, y=250)
+
 
 
 
@@ -81,7 +131,7 @@ def write(uid):
 
 
 def mainscreen(uname):
-	global frame, subframe, subframe3, subframe2, dateframe, fileframe, testframe
+	global frame, subframe, subframe3, subframe2, dateframe, fileframe, testframe, mainframe, ms
 	login_frame.withdraw()
 	ms=Toplevel(master=None)
 	ms.configure(background='white')
@@ -100,7 +150,13 @@ def mainscreen(uname):
 	U=cur.fetchone()
 	uid=U[0]
 	print(uid)
-	Label(frame, text='iManager', font='Cambria 40 bold', cursor='heart',bg='#013554', fg='white').place(x=240, y=25)
+	Label(frame, text='iManager', font='Cambria 40 bold', cursor='heart',bg='#013554', fg='white').place(x=90, y=25)
+	log= Label(frame, text='Logout', font='Cambria 12 ', fg='white', bg='#013554')
+	cont= Label(frame, text='Contact Us', font='Cambria 12 ', fg='white', bg='#013554')
+	cont.place(x=530, y=70)
+	log.place(x=450, y=70)
+	log.bind("<Button-1>", logout)	
+	cont.bind("<Button-1>", contact)
 	tx=uname+"'s files"
 	Label(subframe, text=tx, font='Georgia 15 italic', bg='#CD342E', fg='white').place(x=80, y=8)
 	cur.execute("SELECT exists(SELECT 1 FROM F_Data, U_Data WHERE F_Data.UID=(?))", (uid, ))
@@ -115,6 +171,10 @@ def mainscreen(uname):
 		cnt=7
 		top=225
 		c=0
+		backwall=PhotoImage(file = "bg.gif")
+		#bw=Label(mainframe, image=backwall)
+		#bw.image=backwall
+		#bw.place(x=20, y=0)
 		docimg=PhotoImage ( file= "download.gif")
 		for i in viewdata:
 			doc=Button( mainframe, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(str(i[0])))
@@ -122,6 +182,7 @@ def mainscreen(uname):
 			doc.image=docimg
 			Label(mainframe, text=str(i[0]), font='Times 12 italic', bg='white').place(x=cnt, y=130)
 			cnt+=120
+			print(str(i[0]))
 
 			#Label(dateframe, text=i[3], bg='white', fg='black', font='Courier 13').place(x=70, y=cnt)
 			#abel(fileframe, text= str(i[2])+".txt", bg='white', fg='black', font='Courier 13').place(x=30, y=cnt)
@@ -152,6 +213,8 @@ def sign_up_check(fname, lname, uname, password):
 			raise
 		if fname=='' or lname=='' or uname=='' or password=='':
 			raise
+		if not re.match(r"[A-Za-z]{2,25}([A-Za-z]{2,25})", fname):
+			mb.showerror('Error', 'Please enter a valid first name.')
 		cur.execute("insert into U_Data (Fname, Sname, Uname, Password) values (?, ?, ?, ?);", (fname, lname, uname, password))
 		conn.commit()
 		x=cur.fetchone()
@@ -217,7 +280,7 @@ def sign_up_page():
 
 
 def login_check(uname, password):
-	global subframe, subframe2, subframe3
+	global subframe, subframe2, subframe3, login_frame
 	if uname=='' or password=='':
 		mb.showerror('Login Failed', 'Please enter your username.')
 	else:
@@ -227,6 +290,7 @@ def login_check(uname, password):
 			if checkpass[0]==password :
 				subframe2.destroy()
 				subframe.destroy()
+				#login_frame.destroy()
 				subframe3.destroy()
 				mainscreen(uname)
 			else:
@@ -239,7 +303,7 @@ def login_check(uname, password):
 
 
 def login_page():
-	global uname, password, subframe, subframe3, subframe2
+	global uname, password, subframe, subframe3, subframe2, login_frame
 	subframe=Frame( height=170, width=700, bg='#013554')
 	subframe.place(x=0, y=0)
 	Label(subframe, text='Login', font='Times 50 bold', fg='white', bg='#013554').place(x=250, y=50)
