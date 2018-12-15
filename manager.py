@@ -162,6 +162,8 @@ def mainscreen(uname):
 	cur.execute("SELECT exists(SELECT 1 FROM F_Data, U_Data WHERE F_Data.UID=(?))", (uid, ))
 	checknull=cur.fetchone()
 	print(checknull[0])
+	scroll=Scrollbar(ms, bg='#2F4F4F', troughcolor='#2F4F4F', width=10)
+	scroll.pack(side=RIGHT, fill=Y)
 	if checknull[0]!=0:
 		cur.execute("SELECT FileName FROM F_Data where F_Data.UID=(?)", [uid])
 		viewdata=cur.fetchall()
@@ -274,6 +276,12 @@ def sign_up_page():
 	Label(spp, text='Password',bg='white', font='Cambria 13 bold').place(x=205, y=290)
 	password=Entry(spp, bd=3, show='*')
 	password.place(x=305, y=295)
+	def enterkey(e):
+		sign_up_check(fname.get(), lname.get(), uname.get(), password.get())
+	spp.bind('<Return>', enterkey)
+	frame.bind('<Return>', enterkey)
+	subframe2.bind('<Return>', enterkey)
+	subframe3.bind('<Return>', enterkey)
 	Button(spp, text='Sign Up',  height=1, width=25, bg='black', bd=0, fg='white', font='Cambria 13 bold', command= lambda: sign_up_check(fname.get(), lname.get(), uname.get(), password.get())).place(x=190, y=350)
 
 
@@ -318,6 +326,12 @@ def login_page():
 	Label(login_frame, text='Password', bg='white', font='Cambria 15 bold').place(x=200, y=290)
 	password=Entry(login_frame, show='*', bd=3, cursor='pencil')
 	password.place(x=305, y=295)
+	def enterkey(e):
+		login_check(uname.get(), password.get())
+	subframe.bind('<Return>', enterkey)
+	subframe2.bind('<Return>', enterkey)
+	subframe3.bind('<Return>', enterkey)
+	login_frame.bind('<Return>', enterkey)
 	Button(login_frame, height=1, width=25, bg='#000000', fg='white', text='Enter', font='Cambria 13 bold', command=lambda: login_check(uname.get(), password.get())).place(x=200, y=340)
 	Label(login_frame, text='Not a member?', bg='white', font='Cambria 8').place(x=200, y=380)
 	Button(login_frame, text='Sign up now ➟', font='Cambria 8', width=15,  bg='#DCDCDC', bd=0, fg='black', command=sign_up_page).place(x=280, y=380)
