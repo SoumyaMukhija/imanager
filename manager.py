@@ -21,7 +21,7 @@ login_frame.title('iManager')
 #Databases
 conn=Connection("Sample Data")
 cur=conn.cursor()
-cur.execute("CREATE TABLE if not exists U_Data (_UID INTEGER PRIMARY KEY AUTOINCREMENT, Fname varchar2 (15) NOT NULL, Sname varchar2 (15) NOT NULL, Uname varchar2 (15) UNIQUE, Password varchar2(15) NOT NULL);")
+cur.execute("CREATE TABLE if not exists U_Data (_UID INTEGER PRIMARY KEY AUTOINCREMENT, Uname varchar2 (15) UNIQUE, Contact number (12) UNIQUE, Password varchar2(15) NOT NULL);")
 conn.commit()
 cur.execute("CREATE TABLE IF NOT EXISTS F_Data (_FID INTEGER PRIMARY KEY AUTOINCREMENT, UID INTEGER(1000000), FileName varchar2 (15), Date_ varchar2 (15))")
 conn.commit()
@@ -51,6 +51,16 @@ def logout(event):
 	subframe2.destroy()
 	subframe3.destroy()
 	testframe.destroy()
+	login_frame.deiconify()
+	login_page()
+
+def signuptologin():
+	global frame, subframe, subframe3, subframe2, spp
+	spp.destroy()
+	frame.destroy()
+	subframe.destroy()
+	subframe2.destroy()
+	subframe3.destroy()
 	login_frame.deiconify()
 	login_page()
 
@@ -191,8 +201,8 @@ def mainscreen(uname):
 			vars()['doc'+str(index+1)].image=docimg
 			Label(ms, text=str(i[0]), font='Times 12 italic', bg='white').place(x=cnt, y=130)
 			cnt+=120
-			print( i, index)
-			'''
+			print( i, index			'''
+
 
 		#for index, i in enumerate(viewdata):
 			
@@ -217,19 +227,27 @@ def mainscreen(uname):
 
 
 
-def sign_up_check(fname, lname, uname, password):
+def sign_up_check(uname, contact, password, confirmpassword):
 	global spp, subframe2, subframe3, frame
-	pre_existing=cur.execute("SELECT count(*) FROM U_Data WHERE Uname=?", (uname,));
-	a=pre_existing.fetchall()
+	pre_existing=cur.execute("SELECT * FROM U_Data WHERE Uname=?", (uname,));
+	a=pre_existing.fetchall() 
+	pre_existing=cur.execute("SELECT * FROM U_Data WHERE Contact=?",(contact,))
+	b=pre_existing.fetchall()
 	try:
 		if len(a)>0:
 			raise
-		if fname=='' or lname=='' or uname=='' or password=='':
+		if len(b)>0:
 			raise
-		if not re.match(r"[A-Za-z]{2,25}([A-Za-z]{2,25})", fname):
-			mb.showerror('Error', 'Please enter a valid first name.')
+		if password!=confirmpassword:
+			raise
+		if uname=='' or password=='' or contact=='' or confirmpassword=='':
+			raise
+		if not re.match(r"[A-Za-z0-9]{2,25}([A-Za-z0-9]{2,25})", uname):
+			raise	
+		if not re.match(r"[0-9]{10,12}", contact):
+			raise
+		cur.execute('insert into U_Data ( Uname, Contact, Password) values (?, ?, ?)', (uname, contact, password,))
 		conn.commit()
-		x=cur.fetchone()
 		mb.showinfo('Success', 'Sign-up successful!')
 		login_frame.deiconify()
 		subframe2.destroy()
@@ -238,16 +256,22 @@ def sign_up_check(fname, lname, uname, password):
 		spp.destroy()
 		login_page() 
 	except:
-		if fname=='':
-			mb.showerror('Missing input','Please enter your first name.')
-		elif lname=='':
-			mb.showerror('Missing input', 'Please enter your surname.')
-		elif uname=='':
-			mb.showerror('Missing input', 'Please enter a unique username.')
-		elif password=='':
-			mb.showerror('Missing input', 'Please specify a password.')
+		if uname=='':
+			mb.showerror('Missing input','Please enter your username.')
+		if not re.match(r"[A-Za-z]{2,25}([A-Za-z]{2,25})", uname):
+			mb.showerror('Error', 'Please enter a valid username.')
+		if not re.match(r"[0-9]{10,12}", contact):
+			mb.showerror('Error', 'Please enter a valid phone number.')
+		elif password!=confirmpassword:
+			mb.showerror('Error', 'Password does not match confirm password.')
+		elif password=='' or confirmpassword=='':
+			mb.showerror('Missing input', 'Please enter your password.')
+		elif contact=='':
+			mb.showerror('Missing input', 'Please enter your contact number.')
 		elif len(a)>0:
 			mb.showerror('Username exists', 'This username already exists. Please try another.')
+		elif len(b)>0:
+			mb.showerror('Contact exists','The phone number already exists. Please try logging in instead.')
 		else:
 			raise
 			mb.showerror('Error','Looks like there is something wrong. Please try again later.')
@@ -274,25 +298,28 @@ def sign_up_page():
 	subframe2.place(x=0, y=115)
 	Label(subframe2, text='Welcome aboard! Tell us a bit about yourself.', bg='black', fg='white',font='Times 15').place(x=10, y=8)
 	Label(spp, text='Sign Up', font='Times 30 bold', fg='white', bg='#CD342E').place(x=250, y=40)
-	Label(spp, text='First Name', bg='white', font='Cambria 13 bold').place(x=201, y=170)
-	fname=Entry(spp, bd=3)
-	fname.place(x=305, y=175)
-	Label(spp, text='Last Name',bg='white', font='Cambria 13 bold').place(x=201, y=210) 
-	lname=Entry(spp, bd=3)
-	lname.place(x=305, y=215)
-	Label(spp, text='Username',bg='white', font='Cambria 13 bold').place(x=202, y=250)
+	Label(spp, text='Username', bg='white', font='Cambria 13 bold').place(x=201, y=170)
 	uname=Entry(spp, bd=3)
-	uname.place(x=305, y=255)
-	Label(spp, text='Password',bg='white', font='Cambria 13 bold').place(x=205, y=290)
+	uname.place(x=305, y=175)
+	Label(spp, text='Phone',bg='white', font='Cambria 13 bold').place(x=201, y=210) 
+	contact=Entry(spp, bd=3)
+	contact.place(x=305, y=215)
+	Label(spp, text='Password',bg='white', font='Cambria 13 bold').place(x=202, y=250)
 	password=Entry(spp, bd=3, show='*')
-	password.place(x=305, y=295)
+	password.place(x=305, y=255)
+	Label(spp, text='Confirm Password',bg='white', font='Cambria 13 bold').place(x=145, y=290)
+	confirmpassword=Entry(spp, bd=3, show='*')
+	confirmpassword.place(x=305, y=295)
+	Label(spp, text='Already a member?', bg='white', font='Cambria 8').place(x=200, y=385)
+	Button(spp, text='Login ➟', font='Cambria 8', width=15,  bg='#DCDCDC', bd=0, fg='black', command=signuptologin).place(x=300, y=385)
+
 	def enterkey(e):
-		sign_up_check(fname.get(), lname.get(), uname.get(), password.get())
+		sign_up_check(uname.get(), contact.get(), password.get(), confirmpassword.get())
 	spp.bind('<Return>', enterkey)
 	frame.bind('<Return>', enterkey)
 	subframe2.bind('<Return>', enterkey)
 	subframe3.bind('<Return>', enterkey)
-	Button(spp, text='Sign Up',  height=1, width=25, bg='black', bd=0, fg='white', font='Cambria 13 bold', command= lambda: sign_up_check(fname.get(), lname.get(), uname.get(), password.get())).place(x=190, y=350)
+	Button(spp, text='Sign Up',  height=1, width=25, bg='black', bd=0, fg='white', font='Cambria 13 bold', command= lambda: sign_up_check(uname.get(), contact.get(), password.get(), confirmpassword.get())).place(x=190, y=350)
 
 
 
