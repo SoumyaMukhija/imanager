@@ -138,23 +138,23 @@ def mainscreen(uname):
 	ms.geometry('650x450+100+10')
 	ms.resizable(0,0)
 	ms.title('Main Screen')
-	frame=Frame(ms, height=100, width=700, bg='#013554')
-	frame.place(x=0, y=0)
+	#frame=Frame(ms, height=100, width=700, bg='#013554')
+	#frame.place(x=0, y=0)
 	subframe=Frame(ms, height=40, width=700, bg='#CD342E')
-	subframe.place(x=0, y=115)
+	subframe.place(x=0, y=10)
 	subframe2=Frame(ms, height=5, width=700, bg='#4A4C4C')
-	subframe2.place(x=0, y=105)
+	subframe2.place(x=0, y=55)
 	subframe3=Frame(ms, height=500, width=3, bg='black')
 	subframe3.place(x=70, y=0)
 	cur.execute("SELECT _UID FROM U_Data WHERE UNAME=?",(uname,))
 	U=cur.fetchone()
 	uid=U[0]
 	print(uid)
-	Label(frame, text='iManager', font='Cambria 40 bold', cursor='heart',bg='#013554', fg='white').place(x=90, y=25)
-	log= Label(frame, text='Logout', font='Cambria 12 ', fg='white', bg='#013554')
-	cont= Label(frame, text='Contact Us', font='Cambria 12 ', fg='white', bg='#013554')
-	cont.place(x=530, y=70)
-	log.place(x=450, y=70)
+	#Label(frame, text='iManager', font='Cambria 40 bold',bg='#013554', fg='white').place(x=90, y=25)
+	log= Label(subframe, text='Logout', font='Cambria 12 ', fg='white', bg='#CD342E')
+	cont= Label(subframe, text='Contact Us', font='Cambria 12 ', fg='white', bg='#CD342E')
+	cont.place(x=530, y=10)
+	log.place(x=450, y=10)
 	log.bind("<Button-1>", logout)	
 	cont.bind("<Button-1>", contact)
 	tx=uname+"'s files"
@@ -168,9 +168,9 @@ def mainscreen(uname):
 		cur.execute("SELECT FileName FROM F_Data where F_Data.UID=(?)", [uid])
 		viewdata=cur.fetchall()
 		print(viewdata)
-		mainframe=Frame(ms, height=270, width=400, bg='white')
-		mainframe.place(x=80, y=170)
-		cnt=7
+		#mainframe=Frame(ms, height=270, width=400, bg='white')
+		#mainframe.place(x=80, y=170)
+		cnt=90
 		top=225
 		c=0
 		backwall=PhotoImage(file = "bg.gif")
@@ -179,18 +179,29 @@ def mainscreen(uname):
 		#bw.place(x=20, y=0)
 		docimg=PhotoImage ( file= "download.gif")
 		for i in viewdata:
-			doc=Button( mainframe, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(str(i[0])))
+			doc=Button( ms, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(str(i[0])))
 			doc.place(x=cnt, y=70)
 			doc.image=docimg
-			Label(mainframe, text=str(i[0]), font='Times 12 italic', bg='white').place(x=cnt, y=130)
+			Label(ms, text=str(i[0]), font='Times 12 italic', bg='white').place(x=cnt, y=130)
 			cnt+=120
 			print(str(i[0]))
+
+			'''vars()['doc'+str(index+1)]=Button( ms, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(i[0]))
+			vars()['doc'+str(index+1)].place(x=cnt, y=70)
+			vars()['doc'+str(index+1)].image=docimg
+			Label(ms, text=str(i[0]), font='Times 12 italic', bg='white').place(x=cnt, y=130)
+			cnt+=120
+			print( i, index)
+			'''
+
+		#for index, i in enumerate(viewdata):
+			
 
 			#Label(dateframe, text=i[3], bg='white', fg='black', font='Courier 13').place(x=70, y=cnt)
 			#abel(fileframe, text= str(i[2])+".txt", bg='white', fg='black', font='Courier 13').place(x=30, y=cnt)
 			#Button(ms, text='Open', bg='#0070F7', fg='white', font='Arial 10 bold', bd=3, command=lambda: openexistingfile(str(i[2]))).place(x=500, y=c*2+top)
-		testframe=Frame(ms, height=1, width=700, bg='#0070F7')
-		testframe.place(x=0, y=220)
+		#testframe=Frame(ms, height=1, width=700, bg='#0070F7')
+		#testframe.place(x=0, y=220)
 	else:
 		Label(ms, text='No files yet! Start writing.', font='Cambria 15 italic', bg='white').place(x=240, y=190)
 		img = PhotoImage(file="write.gif")
@@ -200,7 +211,7 @@ def mainscreen(uname):
 	btimg=PhotoImage(file="images.gif")
 	b=Button(ms, image=btimg, bd=0,  command=lambda: write(uid))
 	b.image=btimg
-	b.place(x=540, y=360)
+	b.place(x=550, y=360)
 	#b.place(x=265, y=395)
 	
 
@@ -208,7 +219,7 @@ def mainscreen(uname):
 
 def sign_up_check(fname, lname, uname, password):
 	global spp, subframe2, subframe3, frame
-	pre_existing=cur.execute("SELECT Uname FROM U_Data WHERE Uname=?", (uname,));
+	pre_existing=cur.execute("SELECT count(*) FROM U_Data WHERE Uname=?", (uname,));
 	a=pre_existing.fetchall()
 	try:
 		if len(a)>0:
@@ -217,7 +228,6 @@ def sign_up_check(fname, lname, uname, password):
 			raise
 		if not re.match(r"[A-Za-z]{2,25}([A-Za-z]{2,25})", fname):
 			mb.showerror('Error', 'Please enter a valid first name.')
-		cur.execute("insert into U_Data (Fname, Sname, Uname, Password) values (?, ?, ?, ?);", (fname, lname, uname, password))
 		conn.commit()
 		x=cur.fetchone()
 		mb.showinfo('Success', 'Sign-up successful!')
@@ -321,10 +331,10 @@ def login_page():
 	subframe3.place(x=0, y=190)
 	Label(subframe3, text="Glad to have you back! Let's get started.", font='Times 15', bg='#CD342E', fg='white').place(x=10, y=10)
 	Label(login_frame, text='Username', bg='white', font='Cambria 15 bold').place(x=200, y=250)
-	uname=Entry(login_frame, bd=3, cursor='pencil')
+	uname=Entry(login_frame, bd=3)
 	uname.place(x=305, y=255)
 	Label(login_frame, text='Password', bg='white', font='Cambria 15 bold').place(x=200, y=290)
-	password=Entry(login_frame, show='*', bd=3, cursor='pencil')
+	password=Entry(login_frame, show='*', bd=3)
 	password.place(x=305, y=295)
 	def enterkey(e):
 		login_check(uname.get(), password.get())
@@ -362,7 +372,7 @@ def splashscreen():
 	lb.place(x=0, y=0)
 	subframe=Frame( height=150, width=250, bg='#013554')
 	subframe.place(x=390, y=0)
-	Label(subframe, text='iManager', font='Times 30 bold', cursor='heart', fg='white', bg='#013554').place(x=38, y=60)
+	Label(subframe, text='iManager', font='Times 30 bold', fg='white', bg='#013554').place(x=38, y=60)
 	subframe2=Frame( height=5, width=250, bg='#4A4C4C')
 	subframe2.place(x=390, y=160)
 	subframe3=Frame( height=5, width=250, bg='#CD342E')
