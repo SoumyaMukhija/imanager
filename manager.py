@@ -6,16 +6,14 @@ from tkinter import ttk
 from datetime import *
 import os
 import re
-import sys
-
-
-
+from functools import partial
 
 #Main
-login_frame=Tk()
-login_frame.geometry("650x450+100+10")
-login_frame.resizable(0,0)
-login_frame.title('iManager')
+root=Tk()
+root.geometry("650x450+100+10")
+root.resizable(0,0)
+root.title('iManager')
+root.config(bg='white')
 
 
 #Databases
@@ -43,15 +41,13 @@ def openexistingfile(file):
 
 def logout(event):
 
-	global frame, subframe, subframe3, subframe2, testframe, mainframe, ms
+	global frame, subframe, subframe3, subframe2, testframe, ms
 	ms.destroy()
 	frame.destroy()
-	mainframe.destroy()
 	subframe.destroy()
 	subframe2.destroy()
 	subframe3.destroy()
-	testframe.destroy()
-	login_frame.deiconify()
+	root.deiconify()
 	login_page()
 
 def signuptologin():
@@ -61,7 +57,7 @@ def signuptologin():
 	subframe.destroy()
 	subframe2.destroy()
 	subframe3.destroy()
-	login_frame.deiconify()
+	root.deiconify()
 	login_page()
 
 
@@ -142,7 +138,7 @@ def write(uid):
 
 def mainscreen(uname):
 	global frame, subframe, subframe3, subframe2, dateframe, fileframe, testframe, mainframe, ms
-	login_frame.withdraw()
+	root.withdraw()
 	ms=Toplevel(master=None)
 	ms.configure(background='white')
 	ms.geometry('650x450+100+10')
@@ -178,40 +174,17 @@ def mainscreen(uname):
 		cur.execute("SELECT FileName FROM F_Data where F_Data.UID=(?)", [uid])
 		viewdata=cur.fetchall()
 		print(viewdata)
-		#mainframe=Frame(ms, height=270, width=400, bg='white')
-		#mainframe.place(x=80, y=170)
 		cnt=90
 		top=225
 		c=0
-		backwall=PhotoImage(file = "bg.gif")
-		#bw=Label(mainframe, image=backwall)
-		#bw.image=backwall
-		#bw.place(x=20, y=0)
 		docimg=PhotoImage ( file= "download.gif")
 		for i in viewdata:
-			doc=Button( ms, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(str(i[0])))
+			doc=Button( ms, image=docimg, bd=0,cursor='hand1',  command=partial (openexistingfile, str(i[0])))
 			doc.place(x=cnt, y=70)
 			doc.image=docimg
 			Label(ms, text=str(i[0]), font='Times 12 italic', bg='white').place(x=cnt, y=130)
 			cnt+=120
 			print(str(i[0]))
-
-			'''vars()['doc'+str(index+1)]=Button( ms, image=docimg, bd=0,cursor='hand1',  command=lambda: openexistingfile(i[0]))
-			vars()['doc'+str(index+1)].place(x=cnt, y=70)
-			vars()['doc'+str(index+1)].image=docimg
-			Label(ms, text=str(i[0]), font='Times 12 italic', bg='white').place(x=cnt, y=130)
-			cnt+=120
-			print( i, index			'''
-
-
-		#for index, i in enumerate(viewdata):
-			
-
-			#Label(dateframe, text=i[3], bg='white', fg='black', font='Courier 13').place(x=70, y=cnt)
-			#abel(fileframe, text= str(i[2])+".txt", bg='white', fg='black', font='Courier 13').place(x=30, y=cnt)
-			#Button(ms, text='Open', bg='#0070F7', fg='white', font='Arial 10 bold', bd=3, command=lambda: openexistingfile(str(i[2]))).place(x=500, y=c*2+top)
-		#testframe=Frame(ms, height=1, width=700, bg='#0070F7')
-		#testframe.place(x=0, y=220)
 	else:
 		Label(ms, text='No files yet! Start writing.', font='Cambria 15 italic', bg='white').place(x=240, y=190)
 		img = PhotoImage(file="write.gif")
@@ -249,7 +222,7 @@ def sign_up_check(uname, contact, password, confirmpassword):
 		cur.execute('insert into U_Data ( Uname, Contact, Password) values (?, ?, ?)', (uname, contact, password,))
 		conn.commit()
 		mb.showinfo('Success', 'Sign-up successful!')
-		login_frame.deiconify()
+		root.deiconify()
 		subframe2.destroy()
 		subframe3.destroy()
 		frame.destroy()
@@ -284,7 +257,7 @@ def sign_up_page():
 	subframe.destroy()
 	subframe2.destroy()
 	subframe3.destroy()
-	login_frame.withdraw()
+	root.withdraw()
 	spp=Toplevel()
 	spp.resizable(0,0)
 	spp.title('Sign Up')
@@ -325,7 +298,7 @@ def sign_up_page():
 
 
 def login_check(uname, password):
-	global subframe, subframe2, subframe3, login_frame
+	global subframe, subframe2, subframe3, root
 	if uname=='' or password=='':
 		mb.showerror('Login Failed', 'Please enter your username.')
 	else:
@@ -335,7 +308,7 @@ def login_check(uname, password):
 			if checkpass[0]==password :
 				subframe2.destroy()
 				subframe.destroy()
-				#login_frame.destroy()
+				#root.destroy()
 				subframe3.destroy()
 				mainscreen(uname)
 			else:
@@ -348,7 +321,7 @@ def login_check(uname, password):
 
 
 def login_page():
-	global uname, password, subframe, subframe3, subframe2, login_frame
+	global uname, password, subframe, subframe3, subframe2
 	subframe=Frame( height=170, width=700, bg='#013554')
 	subframe.place(x=0, y=0)
 	Label(subframe, text='Login', font='Times 50 bold', fg='white', bg='#013554').place(x=250, y=50)
@@ -357,21 +330,21 @@ def login_page():
 	subframe3=Frame( height=50, width=700, bg='#CD342E')
 	subframe3.place(x=0, y=190)
 	Label(subframe3, text="Glad to have you back! Let's get started.", font='Times 15', bg='#CD342E', fg='white').place(x=10, y=10)
-	Label(login_frame, text='Username', bg='white', font='Cambria 15 bold').place(x=200, y=250)
-	uname=Entry(login_frame, bd=3)
+	Label(root, text='Username', bg='white', font='Cambria 15 bold').place(x=200, y=250)
+	uname=Entry(root, bd=3)
 	uname.place(x=305, y=255)
-	Label(login_frame, text='Password', bg='white', font='Cambria 15 bold').place(x=200, y=290)
-	password=Entry(login_frame, show='*', bd=3)
+	Label(root, text='Password', bg='white', font='Cambria 15 bold').place(x=200, y=290)
+	password=Entry(root, show='*', bd=3)
 	password.place(x=305, y=295)
 	def enterkey(e):
 		login_check(uname.get(), password.get())
 	subframe.bind('<Return>', enterkey)
 	subframe2.bind('<Return>', enterkey)
 	subframe3.bind('<Return>', enterkey)
-	login_frame.bind('<Return>', enterkey)
-	Button(login_frame, height=1, width=25, bg='#000000', fg='white', text='Enter', font='Cambria 13 bold', command=lambda: login_check(uname.get(), password.get())).place(x=200, y=340)
-	Label(login_frame, text='Not a member?', bg='white', font='Cambria 8').place(x=200, y=380)
-	Button(login_frame, text='Sign up now ➟', font='Cambria 8', width=15,  bg='#DCDCDC', bd=0, fg='black', command=sign_up_page).place(x=280, y=380)
+	root.bind('<Return>', enterkey)
+	Button(root, height=1, width=25, bg='#000000', fg='white', text='Enter', font='Cambria 13 bold', command=lambda: login_check(uname.get(), password.get())).place(x=200, y=340)
+	Label(root, text='Not a member?', bg='white', font='Cambria 8').place(x=200, y=380)
+	Button(root, text='Sign up now ➟', font='Cambria 8', width=15,  bg='#DCDCDC', bd=0, fg='black', command=sign_up_page).place(x=280, y=380)
 
 
 
@@ -390,7 +363,7 @@ def startprogram(e):
 
 def splashscreen():
 	global frame, subframe, subframe2, subframe3
-	frame=Frame(login_frame, height=500, width=700, bg='white', bd=0)
+	frame=Frame(root, height=500, width=700, bg='white', bd=0)
 	frame.grid(row=0, column=0)
 	picture=PhotoImage(file="Capture.gif")
 	lb=Label(frame, image=picture)
@@ -405,10 +378,10 @@ def splashscreen():
 	subframe3=Frame( height=5, width=250, bg='#CD342E')
 	subframe3.place(x=390, y=170)
 	Label(frame, text='Access any file, anywhere.', font='Times 13 italic', bg='white', fg='#4A4C4C', ).place(x=415, y=240)
-	lb2=Label(frame, text='Made by: Soumya Mukhija\nEnrollment: 171B135\nEmail: soumyamukhija@gmail.com\nContact: 9039439659',font="Helvectica 10 bold", fg='#4A4C4C', bg='white').place(x=390, y=360)
+	lb2=Label(frame, text='Made by: Soumya Mukhija\nEmail: soumyamukhija@gmail.com',font="Helvectica 10 bold", fg='#4A4C4C', bg='white').place(x=390, y=400)
 
 
 
 
 splashscreen()
-login_frame.mainloop()
+root.mainloop()
